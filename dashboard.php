@@ -22,6 +22,7 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
         if($_SESSION['user']['balance'] >= $bedrag) {
             // Zet de transactie in de database
             $stmt = $pdo->prepare("INSERT INTO transaction (sender, receiver, amount, description) VALUES (?, ?, ?, ?)");
+            
             $stmt->execute([$_SESSION['user']['id'], $ontvanger['id'], $bedrag, $_POST['omschrijving']]);
 
             // Haal het saldo van de ontvanger op
