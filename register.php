@@ -3,11 +3,26 @@ session_start();
 include 'includes/db.php';
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $username = $_POST['username'];
-    $password = $_POST['password'];
-    $passwordcheck = $_POST['passwordcheck'];
+    $username = htmlspecialchars($_POST['username']);
+    $password = htmlspecialchars($_POST['password']);
+    $passwordcheck = htmlspecialchars($_POST['passwordcheck']);
 
-    if ($password == $passwordcheck) {
+    function validatePassword($password) {
+        // Regular expression for strong password
+        $pattern = '/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&_])[A-Za-z\d@$!%*?&_]{8,}$/';
+
+        if (preg_match($pattern, $password)) {
+        return true;
+        } else {
+        return false;
+        }
+    }
+
+    if($password !== $passwordcheck){
+        $error = "De wachtwoorden komen niet overeen";
+    } elseif (!validatePassword($password)) {
+        $error = "Het wachtwoord is zwaak. Maak een sterke wachtwoord aan.";
+    } else {
         $stmt = $pdo->prepare("SELECT * FROM user WHERE username = ?");
         $stmt->execute([$username]);
         if ($stmt->rowCount() == 0) {
@@ -17,8 +32,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         } else {
             $error = "Deze gebruikersnaam is al in gebruik";
         }
-    } else {
-        $error = "De wachtwoorden komen niet overeen";
     }
 }
 
@@ -69,6 +82,20 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 <div class="flex justify-center">
                 <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Registreren</button>
             </div>
+            <div class="mt-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                <p class="text-gray-700 font-medium mb-2">
+                    Het wachtwoord moet minimaal voldoen aan:
+                </p>
+
+                <ul class="list-disc list-inside space-y-1 text-gray-600">
+                    <li>Minstens 8 tekens lang</li>
+                    <li>Ten minste één kleine letter</li>
+                    <li>Ten minste één hoofdletter</li>
+                    <li>Ten minste één cijfer</li>
+                    <li>Ten minste één speciaal teken (@, $, !, %, *, ?, &)</li>
+                </ul>
+            </div>
+
         </form>
     </div>
 </body>
