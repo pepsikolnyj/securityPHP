@@ -18,12 +18,29 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
     $ontvanger = $stmt->fetch();
 
     if($stmt->rowCount() == 1) {
-        // Controleer of de gebruiker genoeg saldo heeft
-        if($_SESSION['user']['balance'] >= $bedrag) {
+        // Controleer of het geen text is
+        if (!is_numeric($bedrag)){
+            $error = "Voer een getal in.";
+        }
+        //Controleer of het getal is positief
+        if($bedrag < 0){
+            $error = "Voer een juiste getal in.";
+        }
+        //Controleer de saldo
+        if($_SESSION['user']['balance'] < $bedrag) {
+            $error = "Je hebt niet genoeg saldo om dit bedrag over te maken";
+        }
+        if($_SESSION['user']['id'] == $ontvanger['id']){
+            $error = "Je kan het geld niet naar jezelf sturen.";
+        }
+        //Controleer of er geen errors zijn
+        if(!isset($error)){
             // Zet de transactie in de database
             $stmt = $pdo->prepare("INSERT INTO transaction (sender, receiver, amount, description) VALUES (?, ?, ?, ?)");
+
+            $omschrijving = htmlspecialchars($_POST['omschrijving']);
             
-            $stmt->execute([$_SESSION['user']['id'], $ontvanger['id'], $bedrag, $_POST['omschrijving']]);
+            $stmt->execute([$_SESSION['user']['id'], $ontvanger['id'], $bedrag, $omschrijving]);
 
             // Haal het saldo van de ontvanger op
             $stmt = $pdo->prepare("SELECT balance FROM user WHERE username = ?");
@@ -32,6 +49,7 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
 
             // Bereken het nieuwe saldo van de ontvanger
             $saldo = $saldo + $bedrag;
+            
 
             // Update het saldo van de ontvanger
             $stmt = $pdo->prepare("UPDATE user SET balance = ? WHERE username = ?");
@@ -41,7 +59,7 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
             $stmt = $pdo->prepare("SELECT balance FROM user WHERE id = ?");
             $stmt->execute([$_SESSION['user']['id']]);
 
-           //Bereken het nieuwe saldo van de ingelogde gebruiker
+        //Bereken het nieuwe saldo van de ingelogde gebruiker
             $saldo = $stmt->fetchColumn();
             $saldo = $saldo - $bedrag;
 
@@ -50,8 +68,6 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
             $stmt->execute([$saldo, $_SESSION['user']['id']]);
 
             $success = "Het bedrag is succesvol overgemaakt";
-        } else {
-            $error = "Je hebt niet genoeg saldo om dit bedrag over te maken";
         }
     } else {
         $error = "Deze gebruiker bestaat niet";
