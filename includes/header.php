@@ -4,6 +4,7 @@ if (isset($_SESSION['loggedin'])) {
     $username = $_SESSION['user']['username'];
     $userId = $_SESSION['user']['id'];
 }
+
 ?>
 
 <div class="bg-white py-4 shadow-md">

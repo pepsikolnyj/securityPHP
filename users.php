@@ -6,6 +6,9 @@ if(!isset($_SESSION['loggedin']) || $_SESSION['loggedin'] !== true){
     header("location: index.php");
     exit;
 }
+if (!isset($_SESSION['isAdmin']) || $_SESSION['isAdmin'] != 1){
+    header('Location: dashboard.php');
+}
 
 // show users
 
