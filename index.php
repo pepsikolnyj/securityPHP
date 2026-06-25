@@ -12,16 +12,15 @@ if($_SERVER["REQUEST_METHOD"] == "POST") {
     $username = $_POST['username'];
     $password = $_POST['password'];
 
-    $sql = "SELECT * FROM user WHERE username = ? AND password = ?";
+    $sql = "SELECT * FROM user WHERE username = ?";
     $result = $pdo->prepare($sql);
-    $result->execute([$username, $password]);
+    $result->execute([$username]);
     $user = $result->fetch();
 
     // Controleer of er een rij is gevonden
-    if($result->rowCount() > 0) {
+    if($user && password_verify($password, $user['password'])) {
         // Gebruiker is ingelogd
         $_SESSION['loggedin'] = true;
-        $_SESSION['username'] = $username;
         $_SESSION['user'] = $user;
         $_SESSION['isAdmin'] = $user['isAdmin'];
 
